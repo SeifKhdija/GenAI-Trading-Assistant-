@@ -16,22 +16,30 @@ def home():
 
 
 @app.get('/symbols')
-def get_symbols(market_type: str = 'spot'):
+def get_symbols(market_type: str = 'spot', search: str = ''):
     """
     Get available trading symbols from Binance.
     
     Args:
         market_type: 'spot' or 'futures'
+        search: Optional search term to filter symbols (e.g., 'BTC', 'ETH')
     
     Returns:
-        List of available symbols
+        List of available symbols (all symbols returned, can be filtered by search)
     """
     try:
         symbols = get_available_symbols(market_type=market_type)
+        
+        # Filter by search term if provided
+        if search:
+            search_upper = search.upper()
+            symbols = [s for s in symbols if search_upper in s]
+        
         return {
             'market_type': market_type,
+            'search_filter': search if search else None,
             'count': len(symbols),
-            'symbols': symbols[:100]  # Return first 100 to avoid large responses
+            'symbols': symbols  # Return all (or filtered) symbols
         }
     except Exception as e:
         return JSONResponse(
