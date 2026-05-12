@@ -4,26 +4,42 @@ from backend.rag.chroma_store import search_context
 from backend.llm.gemini_client import ask_gemini
 
 
-def generate_market_analysis():
-    df = get_market_data()
+def generate_market_analysis(symbol='BTC/USDT', timeframe='1h'):
+    """
+    Generate AI-powered market analysis for a given symbol.
+    
+    Args:
+        symbol: Trading pair (e.g., 'BTC/USDT', 'ETH/USDT')
+        timeframe: Candle timeframe (e.g., '1h', '4h', '1d')
+    
+    Returns:
+        String with detailed market analysis
+    """
+    # Extract token name (e.g., 'BTC' from 'BTC/USDT')
+    token_name = symbol.split('/')[0]
+    
+    df = get_market_data(symbol=symbol, timeframe=timeframe)
+
+    if df.empty:
+        return f"Error: Unable to fetch data for {symbol}"
 
     df = calculate_indicators(df)
 
     latest = df.iloc[-1]
 
-    rsi = latest['rsi']
-    macd = latest['macd']
-    close = latest['close']
+    rsi = latest.get('rsi', 'N/A')
+    macd = latest.get('macd', 'N/A')
+    close = latest.get('close', 'N/A')
 
-    query = f"RSI {rsi}, MACD {macd}, BTC trend"
+    query = f"{token_name} {symbol} RSI {rsi} MACD {macd} trend analysis"
 
     context = search_context(query)
 
     prompt = f'''
-    Analyze BTC market conditions.
+    Analyze {symbol} market conditions on {timeframe} timeframe.
 
     Current data:
-    - Price: {close}
+    - Price: ${close}
     - RSI: {rsi}
     - MACD: {macd}
 
