@@ -25,7 +25,7 @@ with st.sidebar:
             response = requests.get(
                 f"{API_BASE_URL}/symbols",
                 params={"market_type": market_type},
-                timeout=5
+                timeout=10
             )
             if response.status_code == 200:
                 data = response.json()
@@ -38,11 +38,27 @@ with st.sidebar:
     symbols = fetch_symbols(market_type)
     
     if symbols:
+        st.info(f"📊 {len(symbols)} trading pairs available")
+        
+        # Search box for filtering
+        search_term = st.text_input(
+            "🔍 Search token",
+            placeholder="e.g., BTC, ETH, SOL",
+            help="Search for a specific trading pair"
+        )
+        
+        # Filter symbols based on search
+        if search_term:
+            filtered_symbols = [s for s in symbols if search_term.upper() in s]
+            st.caption(f"Found {len(filtered_symbols)} matches")
+        else:
+            filtered_symbols = symbols
+        
         # Symbol selection
         selected_symbol = st.selectbox(
             "Select Token",
-            options=symbols,
-            index=0 if 'BTC/USDT' in symbols else 0,
+            options=filtered_symbols,
+            index=0 if filtered_symbols else 0,
             help="Choose a trading pair to analyze"
         )
         
